@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hisse, altın ve döviz fiyatlarını takip eden herkese açık BorsaNabız panosu.">
+  <meta name="theme-color" content="#090c0b">
+  <title>BorsaNabız</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css?v=7">
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"><span></span><span></span><span></span></div>
+  <a class="skip" href="#icerik">İçeriğe geç</a>
+  <header class="mast">
+    <div class="mast-top">
+      <a class="brand" href="#piyasa">BorsaNabız</a>
+      <nav class="nav-links" aria-label="Bölümler">
+        <button class="nav-btn" type="button" data-view="piyasa" aria-current="page">Piyasa</button>
+        <button class="nav-btn" type="button" data-view="uyarilar">Uyarılar</button>
+        <button class="nav-btn" type="button" data-view="raporlar">Raporlar</button>
+      </nav>
+      <div class="nav-tools">
+        <a class="text-link" href="/api/export.csv">CSV</a>
+        <button class="btn tiny" type="button" id="refresh-btn" data-admin>Yenile</button>
+      </div>
+    </div>
+    <p class="edition" id="status-line">İlk çekim hazırlanıyor</p>
+  </header>
+  <main id="icerik">
+    <section id="view-piyasa">
+      <div class="strip" id="strip">
+        <button type="button" class="key" data-jump="XU100.IS">
+          <span>BIST 100</span>
+          <strong id="k-bist">—</strong>
+          <em id="k-bist-pct">—</em>
+        </button>
+        <button type="button" class="key featured" data-jump="GRAM.ALTIN">
+          <span>Gram altın</span>
+          <strong id="k-gram">—</strong>
+          <em id="k-gram-pct">—</em>
+        </button>
+        <button type="button" class="key" data-jump="TRY=X">
+          <span>Dolar</span>
+          <strong id="k-usd">—</strong>
+          <em id="k-usd-pct">—</em>
+        </button>
+        <button type="button" class="key" data-jump="EURTRY=X">
+          <span>Euro</span>
+          <strong id="k-eur">—</strong>
+          <em id="k-eur-pct">—</em>
+        </button>
+        <div class="key tally">
+          <span>Tahta</span>
+          <strong id="k-board">—</strong>
+          <em id="k-board-sub">yükselen / düşen</em>
+        </div>
+      </div>
+      <p class="banner" id="banner" hidden></p>
+      <div class="toolbar">
+        <div class="chips" id="chips">
+          <button type="button" data-cat="tumu" class="on">Tümü</button>
+          <button type="button" data-cat="hisse">Hisse</button>
+          <button type="button" data-cat="altin">Altın</button>
+          <button type="button" data-cat="doviz">Döviz</button>
+          <button type="button" data-cat="kripto">Kripto</button>
+          <button type="button" data-cat="endeks">Endeks</button>
+        </div>
+        <label class="search">
+          <span class="visually-hidden">Ara</span>
+          <input id="search" type="search" placeholder="Ad veya sembol" autocomplete="off">
+        </label>
+      </div>
+      <div class="board">
+        <div class="sheet">
+          <div class="sheet-head" aria-hidden="true">
+            <span>Tür</span>
+            <span>Varlık</span>
+            <span>Fiyat</span>
+            <span>Gün</span>
+            <span>7 gün</span>
+            <span>Kaynak</span>
+          </div>
+          <div id="grid"></div>
+          <details class="add-box" data-admin>
+            <summary>Listeye varlık ekle</summary>
+            <form id="instrument-form" class="form-grid">
+              <label>Sembol
+                <input name="symbol" required placeholder="THYAO.IS" maxlength="24">
+              </label>
+              <label>Ad
+                <input name="name" required maxlength="48" placeholder="Türk Hava Yolları">
+              </label>
+              <label>Kategori
+                <select name="category" id="inst-category">
+                  <option value="hisse">Hisse</option>
+                  <option value="altin">Altın</option>
+                  <option value="doviz">Döviz</option>
+                  <option value="kripto">Kripto</option>
+                  <option value="endeks">Endeks</option>
+                </select>
+              </label>
+              <label>Para birimi
+                <input name="currency" id="inst-currency" value="TRY" maxlength="4">
+              </label>
+              <button class="btn solid" type="submit">Ekle</button>
+            </form>
+            <p class="lock-note">Listeyi bu bilgisayardan değiştirebilirsin.</p>
+          </details>
+        </div>
+        <aside class="detail" id="detail">
+          <div class="detail-empty">
+            <p>Soldan bir satır seç. Fiyat, düne göre fark ve grafik burada durur.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-uyarilar" hidden>
+      <header class="page-head">
+        <h2>Uyarı</h2>
+        <p>Bir fiyat ya da günlük yüzde eşiği yaz. Koşul tutunca e-posta gider, aynı kural günde bir kez çalışır.</p>
+      </header>
+      <form id="alert-form" class="panel form-grid" data-admin>
+        <label>Varlık
+          <select name="symbol" id="alert-symbol"></select>
+        </label>
+        <label>Koşul
+          <select name="condition">
+            <option value="pct_up">Günlük yükseliş %</option>
+            <option value="pct_down">Günlük düşüş %</option>
+            <option value="above">Fiyat üstünde</option>
+            <option value="below">Fiyat altında</option>
+          </select>
+        </label>
+        <label>Eşik
+          <input name="threshold" type="number" min="0.0001" step="any" required placeholder="2">
+        </label>
+        <label>Not
+          <input name="note" maxlength="200" placeholder="İsteğe bağlı">
+        </label>
+        <button class="btn solid" type="submit">Kuralı kaydet</button>
+        <p class="lock-note">Kural eklemek bu bilgisayardan yapılır.</p>
+      </form>
+      <div id="alert-list" class="stack"></div>
+      <h3 class="subhead">Olanlar</h3>
+      <div id="event-list" class="stack"></div>
+    </section>
+
+    <section id="view-raporlar" hidden>
+      <header class="page-head">
+        <h2>Bülten</h2>
+        <p>Günlük bülten dünkü kapanışa bakar. Haftalık bülten son fiyatı yedi gün öncesiyle karşılaştırır.</p>
+      </header>
+      <div class="toolbar">
+        <div class="seg" id="report-seg">
+          <button type="button" data-period="daily" class="on">Günlük</button>
+          <button type="button" data-period="weekly">Haftalık</button>
+        </div>
+        <select id="report-pick" aria-label="Rapor seç"></select>
+        <button class="btn ghost" type="button" id="print-report">Yazdır</button>
+        <button class="btn solid" type="button" id="email-report" data-admin>E-posta</button>
+        <button class="btn ghost" type="button" id="generate-report" data-admin>Yeniden üret</button>
+      </div>
+      <div id="report-body" class="panel"></div>
+    </section>
+  </main>
+  <footer class="footer">
+    <p>Yatırım tavsiyesi değildir. Fiyatlar Yahoo Finance üzerinden gelir; gerekirse Stooq ve kur için Frankfurter devreye girer. Gram altın, ons fiyatı ÷ 31,1035 × dolar/TL ile hesaplanan yaklaşık spot değerdir, kuyumcu satış fiyatı değildir.</p>
+  </footer>
+  <div id="toasts"></div>
+  <script src="/static/js/app.js?v=6"></script>
+</body>
+</html>

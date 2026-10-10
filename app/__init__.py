@@ -1,0 +1,1 @@
+"""BorsaNabız finansal takip uygulaması."""
